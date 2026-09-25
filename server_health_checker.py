@@ -27,7 +27,24 @@ def validate_config(config):
         return False
     if not {'warning', 'critical'}.issubset(config['disk']):
         return False
+    if not isinstance(config['resources']['warning'], (int, float)) or \
+        not isinstance(config['resources']['critical'], (int, float)) or \
+        not isinstance(config['disk']['warning'], (int, float)) or \
+        not isinstance(config['disk']['critical'], (int, float)):
+        return False
+    if config['resources']['warning'] <= 0 or config['resources']['warning'] > 100 or \
+        config['resources']['critical'] <= 0 or config['resources']['critical'] > 100 or \
+        config['disk']['warning'] <= 0 or config['disk']['warning'] > 100 or \
+        config['disk']['critical'] <= 0 or config['disk']['critical'] > 100:
+        return False
+    if config['resources']['warning'] >= config['resources']['critical'] or \
+        config['disk']['warning'] >= config['disk']['critical']:
+        return False
     return True
+
+if not validate_config(config):
+    print('Error: Invalid configuration')
+    sys.exit(5)
 
 resources_warning = config['resources']['warning']
 resources_critical = config['resources']['critical']
