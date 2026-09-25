@@ -1,0 +1,6 @@
+resources: 
+    warning: 1
+    critical: 2
+disk: 
+    warning: 1
+    critical: 2

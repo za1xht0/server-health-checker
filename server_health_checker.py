@@ -1,57 +1,82 @@
 import sys
 import psutil
 import platform
+import argparse
+from pathlib import Path
+import yaml
 
-print('\n================================\n      Server Health Checker      \n================================\n')
-print('Running health check...\n')
-cpu_ram_ok = 80
-cpu_ram_warning = 90
-disk_ok = 90
-disk_warning = 95
+parser = argparse.ArgumentParser(description='import config')
+parser.add_argument('--config', type=str, help='config name')
+args = parser.parse_args()
+print(args.config)
 
-if platform.system() == 'Linux':
-    disk_path = '/home'
-elif platform.system() == 'Windows':
-    disk_path = 'C:\\'
-elif platform.system() == 'Darwin':
-    disk_path = '/Users'
-else:
-    print('Unsupported operating system')
-    sys.exit(1)
+cfg_path = Path(args.config)
 
-def cpu_check(cpu):
-    if cpu < cpu_ram_ok:
+if not cfg_path.exists():
+    print(f"ERROR: Configuration file '{cfg_path}' not found")
+    sys.exit(4) 
+
+with open(cfg_path, 'r') as file:
+    config = yaml.safe_load(file)
+    print(config)
+
+def validate_config(config):
+    if not {'resources', 'disk'}.issubset(config):
+        return False
+    if not {'warning', 'critical'}.issubset(config['resources']):
+        return False
+    if not {'warning', 'critical'}.issubset(config['disk']):
+        return False
+    return True
+
+resources_warning = config['resources']['warning']
+resources_critical = config['resources']['critical']
+disk_warning = config['disk']['warning']
+disk_critical = config['disk']['critical']
+
+def get_disk_path():
+    if platform.system() == 'Linux':
+        return '/home'
+    elif platform.system() == 'Windows':
+        return 'C:\\'
+    elif platform.system() == 'Darwin':
+        return '/Users'
+    else:
+        print('Unsupported operating system')
+        sys.exit(1)
+
+
+def cpu_check(cpu, resources_warning, resources_critical):
+    if cpu < resources_warning:
         return 'OK'
-    elif cpu <= cpu_ram_warning:
+    elif cpu <= resources_critical:
         return 'WARNING'
     else:
         return 'CRITICAL'
 
-def ram_check(ram):
-    if ram < cpu_ram_ok:
+def ram_check(ram, resources_warning, resources_critical):
+    if ram < resources_warning:
         return 'OK'
-    elif ram <= cpu_ram_warning:
+    elif ram <= resources_critical:
         return 'WARNING'
     else:
         return 'CRITICAL'
 
-def disk_check(disk):
-    if disk < disk_ok:
+def disk_check(disk, disk_warning, disk_critical):
+    if disk < disk_warning:
         return 'OK'
-    elif disk <= disk_warning:
+    elif disk <= disk_critical:
         return 'WARNING'
     else:
         return 'CRITICAL'
 
-def overall_status(cpu_result, ram_result, disk_result):
-    if cpu_result == 'OK' and ram_result == 'OK' and disk_result == 'OK':
-        return 'OK'
-    elif cpu_result == 'CRITICAL' or ram_result == 'CRITICAL' or disk_result == 'CRITICAL' :
+def overall_status(crd):
+    if 'CRITICAL' in crd.values():
         return 'CRITICAL'
-    elif cpu_result == 'WARNING' or ram_result == 'WARNING' or disk_result == 'WARNING' :
+    elif 'WARNING' in crd.values():
         return 'WARNING'
     else:
-        return 'UNKNOWN'
+        return 'OK'
     
 def get_exit_code(status):
     if status == 'OK':
@@ -63,25 +88,35 @@ def get_exit_code(status):
     elif status == 'UNKNOWN':
         return 3
 
-def main(cpu, ram, disk):
-    cpu_result = cpu_check(cpu)
-    ram_result =  ram_check(ram)
-    disk_result =  disk_check(disk)
-    status = overall_status(cpu_result, ram_result, disk_result)
+def process_checks(cpu, ram, disk):
+    cpu_result = cpu_check(cpu, resources_warning, resources_critical)
+    ram_result =  ram_check(ram, resources_warning, resources_critical)
+    disk_result =  disk_check(disk, disk_warning, disk_critical)
+    crd = {
+            "cpu": cpu_result,
+            "ram": ram_result,
+            "disk": disk_result
+        }
+    status = overall_status(crd)
     exit_code = get_exit_code(status)
     return f'\nCPU: {cpu}% ---- {cpu_result}\nMemory: {ram}% ---- {ram_result}\nDisk: {disk}% ---- {disk_result}\n\nOverall status: {status}\n', exit_code
-exit_code = 0
-while True:
-    cpu = psutil.cpu_percent(interval=1)
-    ram = psutil.virtual_memory().percent
-    disk = psutil.disk_usage(disk_path).percent
-    res, exit_code = main(cpu, ram, disk)
-    print(res)
-    is_on = input('Run another check? [y/n]: ').lower()
-    if is_on == 'n':
-        break
-sys.exit(exit_code)
+def main():
+    print('\n================================\n      Server Health Checker      \n================================\n')
+    print('Running health check...\n')
+    disk_path = get_disk_path()
+    while True:
+        cpu = psutil.cpu_percent(interval=1)
+        ram = psutil.virtual_memory().percent
+        disk = psutil.disk_usage(disk_path).percent
+        res, exit_code = process_checks(cpu, ram, disk)
+        print(res)
+        is_on = input('Run another check? [y/n]: ').lower()
+        if is_on == 'n':
+            break
+    sys.exit(exit_code)
 
+if __name__ == '__main__':
+    main()
 
 
 
