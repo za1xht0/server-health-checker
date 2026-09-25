@@ -1,56 +1,63 @@
-# Server Health Checker
 
-Простая CLI-утилита на Python для проверки состояния системы.
 
-Программа автоматически получает показатели **CPU, RAM и диска**, сравнивает их с заданными порогами и определяет общее состояние системы.
+```
+███████╗███████╗██████╗ ██╗   ██╗███████╗██████╗     ██╗  ██╗███████╗ █████╗ ██╗  ████████╗██╗  ██╗     ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗███████╗██████╗ 
+██╔════╝██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗    ██║  ██║██╔════╝██╔══██╗██║  ╚══██╔══╝██║  ██║    ██╔════╝██║  ██║██╔════╝██╔════╝██║ ██╔╝██╔════╝██╔══██╗
+███████╗█████╗  ██████╔╝██║   ██║█████╗  ██████╔╝    ███████║█████╗  ███████║██║     ██║   ███████║    ██║     ███████║█████╗  ██║     █████╔╝ █████╗  ██████╔╝
+╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██╔══╝  ██╔══██╗    ██╔══██║██╔══╝  ██╔══██║██║     ██║   ██╔══██║    ██║     ██╔══██║██╔══╝  ██║     ██╔═██╗ ██╔══╝  ██╔══██╗
+███████║███████╗██║  ██║ ╚████╔╝ ███████╗██║  ██║    ██║  ██║███████╗██║  ██║███████╗██║   ██║  ██║    ╚██████╗██║  ██║███████╗╚██████╗██║  ██╗███████╗██║  ██║
+╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝   ╚═╝  ╚═╝     ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 
-## Возможности
 
-* Автоматическое получение загрузки CPU
-* Автоматическое получение использования RAM
-* Автоматическое получение заполненности диска
-* Определение состояния системы:
+A simple Python CLI utility for monitoring system health.
+
+The program automatically collects **CPU, RAM, and disk usage**, compares the results against predefined thresholds, and determines the overall system status.
+
+## Features
+
+* Automatically collects CPU usage
+* Automatically collects RAM usage
+* Automatically collects disk usage
+* Determines the overall system status:
 
   * `OK`
   * `WARNING`
   * `CRITICAL`
-* Возврат exit code в зависимости от состояния
-* Возможность выполнять несколько проверок за один запуск
-* Использование `psutil` для получения системных метрик
+* Returns an exit code based on the overall system status
+* Allows multiple health checks during a single run
+* Uses `psutil` to collect system metrics
 
-## Как работает
+## How It Works
 
-Программа проверяет три основных ресурса системы:
+The program checks three main system resources:
 
-| Ресурс |    OK | WARNING | CRITICAL |
-| ------ | ----: | ------: | -------: |
-| CPU    | < 80% |  80–90% |    > 90% |
-| RAM    | < 80% |  80–90% |    > 90% |
-| Disk   | < 90% |  90–95% |    > 95% |
+| Resource |    OK | WARNING | CRITICAL |
+| -------- | ----: | ------: | -------: |
+| CPU      | < 80% |  80–90% |    > 90% |
+| RAM      | < 80% |  80–90% |    > 90% |
+| Disk     | < 90% |  90–95% |    > 95% |
 
-Общий статус определяется по состоянию ресурсов:
+The overall system status is determined by the status of each resource:
 
-* Все показатели `OK` → `OK`
-* Есть хотя бы один `WARNING` → `WARNING`
-* Есть хотя бы один `CRITICAL` → `CRITICAL`
+* All resources are `OK` → `OK`
+* At least one resource is `WARNING` → `WARNING`
+* At least one resource is `CRITICAL` → `CRITICAL`
 
-## Exit codes
+## Exit Codes
 
-Программа возвращает код завершения в зависимости от общего состояния:
+The program returns an exit code based on the overall system status:
 
-| Exit code | Состояние  |
+| Exit Code | Status     |
 | --------: | ---------- |
 |       `0` | `OK`       |
 |       `1` | `WARNING`  |
 |       `2` | `CRITICAL` |
 
+## Example
 
-## Пример работы
-
-```
-
+```text
 ================================
-      Server Health Checker      
+      Server Health Checker
 ================================
 
 Running health check...
@@ -62,30 +69,31 @@ Disk: 18.9% ---- OK
 
 Overall status: OK
 
-Run another check? [y/n]: 
+Run another check? [y/n]:
 ```
 
-## Требования
+## Requirements
 
 * Python 3
 * `psutil`
 
-Установка зависимости:
+Install the dependency:
 
 ```bash
 pip install psutil
 ```
 
-## Запуск
-
+## Usage
 
 ```bash
 python3 server_health_checker.py
 ```
 
-## Используемые технологии
+## Technologies
 
 * Python
 * psutil
 * Linux
 * Git
+
+
