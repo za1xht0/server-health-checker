@@ -4,12 +4,22 @@ import platform
 import argparse
 from pathlib import Path
 import yaml
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Server Health Checker')
-    parser.add_argument('--config', type=str, help='path to configuration file')
+    parser.add_argument('-c', '--config', 
+                        type=str, 
+                        required=True, 
+                        help='path to configuration file'
+                        )
+    parser.add_argument('-o', '--once', 
+                        action='store_true', 
+                        help='run a single health check and exit'
+                        )
     args = parser.parse_args()
+    once = args.once
     cfg_path = Path(args.config)
-    return cfg_path
+    return cfg_path, once 
 
 def load_config(cfg_path):
     if not cfg_path.exists():
@@ -117,7 +127,7 @@ def get_system_metrics(disk_path):
 def main():
     print('\n================================\n      Server Health Checker      \n================================\n')
     print('Running health check...\n')
-    cfg_path = parse_args()
+    cfg_path, once = parse_args()
     config = load_config(cfg_path)
     if not validate_config(config):
         print('Error: Invalid configuration')
@@ -134,9 +144,12 @@ def main():
         cpu, ram, disk = get_system_metrics(disk_path)
         res, exit_code = process_checks(cpu, ram, disk, thresholds)
         print(res)
-        is_on = input('Run another check? [y/n]: ').lower()
-        if is_on == 'n':
+        if once:
             break
+        else:
+            is_on = input('Run another check? [y/n]: ').lower()
+            if is_on == 'n':
+                break
     sys.exit(exit_code)
 
 if __name__ == '__main__':
