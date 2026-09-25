@@ -46,11 +46,12 @@ if not validate_config(config):
     print('Error: Invalid configuration')
     sys.exit(5)
 
-resources_warning = config['resources']['warning']
-resources_critical = config['resources']['critical']
-disk_warning = config['disk']['warning']
-disk_critical = config['disk']['critical']
-
+thresholds = {
+    'resources_warning': config['resources']['warning'],
+    'resources_critical': config['resources']['critical'],
+    'disk_warning': config['disk']['warning'],
+    'disk_critical': config['disk']['critical']
+}
 def get_disk_path():
     if platform.system() == 'Linux':
         return '/home'
@@ -61,7 +62,6 @@ def get_disk_path():
     else:
         print('Unsupported operating system')
         sys.exit(1)
-
 
 def cpu_check(cpu, resources_warning, resources_critical):
     if cpu < resources_warning:
@@ -105,10 +105,10 @@ def get_exit_code(status):
     elif status == 'UNKNOWN':
         return 3
 
-def process_checks(cpu, ram, disk):
-    cpu_result = cpu_check(cpu, resources_warning, resources_critical)
-    ram_result =  ram_check(ram, resources_warning, resources_critical)
-    disk_result =  disk_check(disk, disk_warning, disk_critical)
+def process_checks(cpu, ram, disk, thresholds):
+    cpu_result = cpu_check(cpu, thresholds['resources_warning'], thresholds['resources_critical'])
+    ram_result =  ram_check(ram, thresholds['resources_warning'], thresholds['resources_critical'])
+    disk_result =  disk_check(disk, thresholds['disk_warning'], thresholds['disk_critical'])
     crd = {
             "cpu": cpu_result,
             "ram": ram_result,
@@ -117,6 +117,7 @@ def process_checks(cpu, ram, disk):
     status = overall_status(crd)
     exit_code = get_exit_code(status)
     return f'\nCPU: {cpu}% ---- {cpu_result}\nMemory: {ram}% ---- {ram_result}\nDisk: {disk}% ---- {disk_result}\n\nOverall status: {status}\n', exit_code
+
 def main():
     print('\n================================\n      Server Health Checker      \n================================\n')
     print('Running health check...\n')
@@ -125,7 +126,7 @@ def main():
         cpu = psutil.cpu_percent(interval=1)
         ram = psutil.virtual_memory().percent
         disk = psutil.disk_usage(disk_path).percent
-        res, exit_code = process_checks(cpu, ram, disk)
+        res, exit_code = process_checks(cpu, ram, disk, thresholds)
         print(res)
         is_on = input('Run another check? [y/n]: ').lower()
         if is_on == 'n':
