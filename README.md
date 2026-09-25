@@ -12,7 +12,7 @@
 A simple Python CLI utility for monitoring system health.
 
 The program automatically collects **CPU, RAM, and disk usage**, compares the results against predefined thresholds, and determines the overall system status.
-
+```
 ## Features
 
 * Automatically collects CPU usage
