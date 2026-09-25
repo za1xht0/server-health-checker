@@ -4,21 +4,21 @@ import platform
 import argparse
 from pathlib import Path
 import yaml
+def parse_args():
+    parser = argparse.ArgumentParser(description='Server Health Checker')
+    parser.add_argument('--config', type=str, help='path to configuration file')
+    args = parser.parse_args()
+    cfg_path = Path(args.config)
+    return cfg_path
 
-parser = argparse.ArgumentParser(description='import config')
-parser.add_argument('--config', type=str, help='config name')
-args = parser.parse_args()
-print(args.config)
+def load_config(cfg_path):
+    if not cfg_path.exists():
+        print(f"ERROR: Configuration file '{cfg_path}' not found")
+        sys.exit(4) 
 
-cfg_path = Path(args.config)
-
-if not cfg_path.exists():
-    print(f"ERROR: Configuration file '{cfg_path}' not found")
-    sys.exit(4) 
-
-with open(cfg_path, 'r') as file:
-    config = yaml.safe_load(file)
-    print(config)
+    with open(cfg_path, 'r') as file:
+        config = yaml.safe_load(file)
+        return config
 
 def validate_config(config):
     if not {'resources', 'disk'}.issubset(config):
@@ -42,16 +42,6 @@ def validate_config(config):
         return False
     return True
 
-if not validate_config(config):
-    print('Error: Invalid configuration')
-    sys.exit(5)
-
-thresholds = {
-    'resources_warning': config['resources']['warning'],
-    'resources_critical': config['resources']['critical'],
-    'disk_warning': config['disk']['warning'],
-    'disk_critical': config['disk']['critical']
-}
 def get_disk_path():
     if platform.system() == 'Linux':
         return '/home'
@@ -118,14 +108,30 @@ def process_checks(cpu, ram, disk, thresholds):
     exit_code = get_exit_code(status)
     return f'\nCPU: {cpu}% ---- {cpu_result}\nMemory: {ram}% ---- {ram_result}\nDisk: {disk}% ---- {disk_result}\n\nOverall status: {status}\n', exit_code
 
+def get_system_metrics(disk_path):
+    cpu = psutil.cpu_percent(interval=1)
+    ram = psutil.virtual_memory().percent
+    disk = psutil.disk_usage(disk_path).percent
+    return cpu, ram, disk
+
 def main():
     print('\n================================\n      Server Health Checker      \n================================\n')
     print('Running health check...\n')
+    cfg_path = parse_args()
+    config = load_config(cfg_path)
+    if not validate_config(config):
+        print('Error: Invalid configuration')
+        sys.exit(5)
     disk_path = get_disk_path()
+    thresholds = {
+    'resources_warning': config['resources']['warning'],
+    'resources_critical': config['resources']['critical'],
+    'disk_warning': config['disk']['warning'],
+    'disk_critical': config['disk']['critical']
+    }
+
     while True:
-        cpu = psutil.cpu_percent(interval=1)
-        ram = psutil.virtual_memory().percent
-        disk = psutil.disk_usage(disk_path).percent
+        cpu, ram, disk = get_system_metrics(disk_path)
         res, exit_code = process_checks(cpu, ram, disk, thresholds)
         print(res)
         is_on = input('Run another check? [y/n]: ').lower()
