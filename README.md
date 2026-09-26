@@ -174,7 +174,7 @@ echo $?
 server-health-checker/
 │
 ├── server_health_checker.py
-├── config.yaml
+├── config.example.yaml
 ├── requirements.txt
 └── README.md
 ```
