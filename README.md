@@ -8,54 +8,96 @@
 ███████║███████╗██║  ██║ ╚████╔╝ ███████╗██║  ██║    ██║  ██║███████╗██║  ██║███████╗██║   ██║  ██║    ╚██████╗██║  ██║███████╗╚██████╗██║  ██╗███████╗██║  ██║
 ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝   ╚═╝  ╚═╝     ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 
-
-A simple Python CLI utility for monitoring system health.
-
-The program automatically collects **CPU, RAM, and disk usage**, compares the results against predefined thresholds, and determines the overall system status.
 ```
+
+CLI utility for monitoring basic system health metrics.
+
+The tool checks:
+- CPU usage
+- RAM usage
+- Disk usage
+
+Based on configurable thresholds, it returns health status:
+- OK
+- WARNING
+- CRITICAL
+
+The project is built as a practical DevOps learning project and demonstrates:
+- Python CLI development
+- Configuration management
+- System monitoring
+- Linux-oriented automation practices
+
+---
+
 ## Features
 
-* Automatically collects CPU usage
-* Automatically collects RAM usage
-* Automatically collects disk usage
-* Determines the overall system status:
+✅ Command-line interface  
+✅ YAML configuration  
+✅ Configuration validation  
+✅ CPU/RAM/Disk monitoring  
+✅ Custom warning and critical thresholds  
+✅ Exit codes for automation  
+✅ Single check mode (`--once`)  
+✅ Cross-platform disk path detection  
 
-  * `OK`
-  * `WARNING`
-  * `CRITICAL`
-* Returns an exit code based on the overall system status
-* Allows multiple health checks during a single run
-* Uses `psutil` to collect system metrics
+---
 
-## How It Works
+## Requirements
 
-The program checks three main system resources:
+- Python 3.10+
+- psutil
+- PyYAML
 
-| Resource |    OK | WARNING | CRITICAL |
-| -------- | ----: | ------: | -------: |
-| CPU      | < 80% |  80–90% |    > 90% |
-| RAM      | < 80% |  80–90% |    > 90% |
-| Disk     | < 90% |  90–95% |    > 95% |
+## Install dependencies:
 
-The overall system status is determined by the status of each resource:
+```bash
+pip install -r requirements.txt
+```
+## Installation
+```
+git clone https://github.com/za1xht0/server-health-checker.git
 
-* All resources are `OK` → `OK`
-* At least one resource is `WARNING` → `WARNING`
-* At least one resource is `CRITICAL` → `CRITICAL`
+cd server-health-checker
+```
+## Configuration
 
-## Exit Codes
+Example config.yaml:
+```
+resources:
+  warning: 80
+  critical: 90
 
-The program returns an exit code based on the overall system status:
+disk:
+  warning: 90
+  critical: 95
+```
+### Configuration rules:
 
-| Exit Code | Status     |
-| --------: | ---------- |
-|       `0` | `OK`       |
-|       `1` | `WARNING`  |
-|       `2` | `CRITICAL` |
+values must be numbers
+values must be between 0 and 100
+warning threshold must be lower than critical threshold
 
-## Example
+## Usage
 
-```text
+Run continuous monitoring:
+```
+python server_health_checker.py --config config.yaml
+```
+Run a single health check:
+```
+python server_health_checker.py --config config.yaml --once
+```
+Short options:
+```
+python server_health_checker.py -c config.yaml -o
+```
+Show help:
+```
+python server_health_checker.py --help
+```
+## Example output
+```
 ================================
       Server Health Checker
 ================================
@@ -63,37 +105,35 @@ The program returns an exit code based on the overall system status:
 Running health check...
 
 
-CPU: 20.4% ---- OK
-Memory: 36.8% ---- OK
-Disk: 18.9% ---- OK
+CPU: 9.1% ---- OK
+Memory: 41.4% ---- OK
+Disk: 23.8% ---- OK
 
 Overall status: OK
+```
+## Exit codes
 
-Run another check? [y/n]:
+The program uses exit codes for automation:
+
+| Code | Status   |	Description                   |
+|------|---------:|------------------------------:|   
+| 0    |	OK      | System is healthy             |
+| 1	   |WARNING	  | Warning threshold exceeded    |
+| 2    |	CRITICAL|	Critical threshold exceeded   |
+| 4    |	ERROR	  | Configuration file not found  |
+| 5    |	ERROR   |	Invalid configuration         |
+
+## Example:
+```
+echo $?
 ```
 
-## Requirements
-
-* Python 3
-* `psutil`
-
-Install the dependency:
-
-```bash
-pip install psutil
+## Project structure
 ```
-
-## Usage
-
-```bash
-python3 server_health_checker.py
+server-health-checker/
+│
+├── server_health_checker.py
+├── config.yaml
+├── requirements.txt
+└── README.md
 ```
-
-## Technologies
-
-* Python
-* psutil
-* Linux
-* Git
-
-
