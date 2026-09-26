@@ -29,6 +29,13 @@ The project is built as a practical DevOps learning project and demonstrates:
 - Linux-oriented automation practices
 
 ---
+## Purpose
+This project was created as a practical DevOps learning project to explore:
+- Linux system monitoring
+- CLI application development
+- YAML-based configuration
+
+---
 
 ## Features
 
@@ -46,20 +53,43 @@ The project is built as a practical DevOps learning project and demonstrates:
 ## Requirements
 
 - Python 3.10+
+- pip
+
+Dependencies:
 - psutil
-- PyYAML
+- pyYAML
 
 ## Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
+
 ## Installation
 ```
 git clone https://github.com/za1xht0/server-health-checker.git
 
 cd server-health-checker
 ```
+Create virtual environment:
+
+```
+python3 -m venv .venv
+```
+Activate virtual environment:
+
+Linux/macOS:
+
+```
+source .venv/bin/activate
+```
+
+Windows:
+
+```
+.venv\Scripts\activate
+```
+
 ## Configuration
 
 Copy example configuration:
