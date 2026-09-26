@@ -9,6 +9,9 @@ venv/
 # Local configuration
 config.yaml
 
+# logs
+server_health_checker.log
+
 # IDE
 .idea/
 .vscode/

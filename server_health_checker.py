@@ -4,6 +4,11 @@ import platform
 import argparse
 from pathlib import Path
 import yaml
+import logging
+
+
+logging.basicConfig(filename='server_health_checker.log', level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Server Health Checker')
@@ -23,7 +28,7 @@ def parse_args():
 
 def load_config(cfg_path):
     if not cfg_path.exists():
-        print(f"ERROR: Configuration file '{cfg_path}' not found")
+        logging.error(f"Configuration file '{cfg_path}' not found")
         sys.exit(4) 
 
     with open(cfg_path, 'r') as file:
@@ -60,7 +65,7 @@ def get_disk_path():
     elif platform.system() == 'Darwin':
         return '/Users'
     else:
-        print('Unsupported operating system')
+        logging.error('Unsupported operating system')
         sys.exit(1)
 
 def cpu_check(cpu, resources_warning, resources_critical):
@@ -126,12 +131,12 @@ def get_system_metrics(disk_path):
 
 def main():
     print('\n================================\n      Server Health Checker      \n================================\n')
-    print('Running health check...\n')
     cfg_path, once = parse_args()
     config = load_config(cfg_path)
     if not validate_config(config):
-        print('Error: Invalid configuration')
+        logging.error('Invalid configuration')
         sys.exit(5)
+    logging.info('Running health check...\n')
     disk_path = get_disk_path()
     thresholds = {
     'resources_warning': config['resources']['warning'],
