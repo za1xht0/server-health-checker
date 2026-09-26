@@ -99,7 +99,15 @@ def overall_status(crd):
         return 'WARNING'
     else:
         return 'OK'
-    
+
+def log_result(name, value, result):
+    if result == 'CRITICAL':
+        logging.error(f'{name} usage: {value}% - {result}')
+    elif result == 'WARNING':
+        logging.warning(f'{name} usage: {value}% - {result}')
+    else:
+        logging.info(f'{name} usage: {value}% - {result}')
+
 def get_exit_code(status):
     if status == 'OK':
         return 0
@@ -119,6 +127,9 @@ def process_checks(cpu, ram, disk, thresholds):
             "ram": ram_result,
             "disk": disk_result
         }
+    log_result("CPU", cpu, cpu_result)
+    log_result("RAM", ram, ram_result)
+    log_result("DISK", disk, disk_result)
     status = overall_status(crd)
     exit_code = get_exit_code(status)
     return f'\nCPU: {cpu}% ---- {cpu_result}\nMemory: {ram}% ---- {ram_result}\nDisk: {disk}% ---- {disk_result}\n\nOverall status: {status}\n', exit_code
