@@ -1,6 +1,0 @@
-resources: 
-    warning: 80
-    critical: 90
-disk: 
-    warning: 90
-    critical: 95
