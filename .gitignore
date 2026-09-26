@@ -1,8 +1,14 @@
+# Python
 __pycache__/
 *.pyc
 
+# Virtual environment
 .venv/
 venv/
 
+# Local configuration
+config.yaml
+
+# IDE
 .idea/
 .vscode/

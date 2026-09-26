@@ -62,7 +62,11 @@ cd server-health-checker
 ```
 ## Configuration
 
-Example config.yaml:
+Copy example configuration:
+```
+cp config.example.yaml config.yaml
+```
+Example config.example.yaml:
 ```
 resources:
   warning: 80
@@ -96,6 +100,13 @@ Show help:
 ```
 python server_health_checker.py --help
 ```
+## Command line arguments
+
+|Argument	    | Description                    |
+|-------------|-------------------------------:|
+|--config, -c	| Path to configuration file     |
+|--once, -o	  | Run one health check and exit  |
+
 ## Example output
 ```
 ================================
