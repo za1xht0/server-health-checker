@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 import yaml
 import logging
+import time
 
 
 logging.basicConfig(filename='server_health_checker.log', level=logging.INFO,
@@ -54,6 +55,10 @@ def validate_config(config):
         return False
     if config['resources']['warning'] >= config['resources']['critical'] or \
         config['disk']['warning'] >= config['disk']['critical']:
+        return False
+    if not {'interval'}.issubset(config):
+        return False
+    if not isinstance(config['interval'], (int, float)) or config['interval'] <= 0:
         return False
     return True
 
@@ -147,6 +152,7 @@ def main():
     if not validate_config(config):
         logging.error('Invalid configuration')
         sys.exit(5)
+    interval = config['interval']
     logging.info('Running health check...\n')
     disk_path = get_disk_path()
     thresholds = {
@@ -156,18 +162,20 @@ def main():
     'disk_critical': config['disk']['critical']
     }
 
-    while True:
-        cpu, ram, disk = get_system_metrics(disk_path)
-        res, exit_code = process_checks(cpu, ram, disk, thresholds)
-        print(res)
-        if once:
-            break
-        else:
-            is_on = input('Run another check? [y/n]: ').lower()
-            if is_on == 'n':
+    try:
+        while True:
+            cpu, ram, disk = get_system_metrics(disk_path)
+            res, exit_code = process_checks(cpu, ram, disk, thresholds)
+            print(res)
+            if once:
                 break
-    sys.exit(exit_code)
-
+            print(f'Next check in: {config['interval']} seconds')
+            time.sleep(interval)
+        sys.exit(exit_code)
+    except KeyboardInterrupt:
+        print('\nStopping Server Health Checker...')
+        sys.exit(130)
+        
 if __name__ == '__main__':
     main()
 

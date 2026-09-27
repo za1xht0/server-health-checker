@@ -4,3 +4,5 @@ resources:
 disk: 
     warning: 90
     critical: 95
+
+interval: 5

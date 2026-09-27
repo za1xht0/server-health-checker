@@ -102,12 +102,13 @@ def test_get_exit_code(status, expected):
     [
         ({"disk": {"warning": 90, "critical": 95}}, False),
         ({"resources": {"warning": 80, "critical": 90}}, False),
+        ({"interval": 5}, False),
         ({"resources": {"critical": 90}, "disk": {"critical": 95}}, False),
         ({"resources": {"warning": "abc", "critical": 95}, "disk": {"warning": 90, "critical": 95}}, False),
         ({"resources": {"warning": 0, "critical": 90}, "disk": {"warning": 90, "critical": 95}}, False),
         ({"resources": {"warning": 101, "critical": 95}, "disk": {"warning": 90, "critical": 95}}, False),
         ({"resources": {"warning": 95, "critical": 80}, "disk": {"warning": 90, "critical": 95}}, False),
-        ({"resources": {"warning": 80, "critical": 95}, "disk": {"warning": 90, "critical": 95}}, True),
+        ({"resources": {"warning": 80, "critical": 95}, "disk": {"warning": 90, "critical": 95}, "interval": 5}, True),
         ({}, False),
         ({"resources": {"warning": 80, "critical": 90}, "disk": {"critical": 95}}, False)
     ]
@@ -224,7 +225,8 @@ def test_main(monkeypatch):
     monkeypatch.setattr(server_health_checker, 'parse_args', lambda: (Path('config.yaml'), True))
     monkeypatch.setattr(server_health_checker, 'load_config', lambda cfg_path: {
             'resources': {'warning': 80, 'critical': 90},
-            'disk': {'warning': 90, 'critical': 95}
+            'disk': {'warning': 90, 'critical': 95},
+            'interval': 5
         }
         )
     monkeypatch.setattr(server_health_checker, 'validate_config', lambda config: True)
@@ -245,12 +247,11 @@ def test_main_invalid_config(monkeypatch):
 
 def test_main_user_stops(monkeypatch):
     monkeypatch.setattr(server_health_checker, 'parse_args',lambda: (Path('config.yaml'), False))
-    answers = iter(['y', 'n'])
-    monkeypatch.setattr('builtins.input', lambda _: next(answers))
     monkeypatch.setattr(server_health_checker, 'load_config',
         lambda cfg_path: {
             'resources': {'warning': 80, 'critical': 90},
-            'disk': {'warning': 90, 'critical': 95}
+            'disk': {'warning': 90, 'critical': 95},
+            'interval': 5
         })
     monkeypatch.setattr(server_health_checker, 'validate_config', lambda config: True)
     monkeypatch.setattr(server_health_checker, 'get_disk_path', lambda: '/home')
@@ -260,7 +261,10 @@ def test_main_user_stops(monkeypatch):
         calls.append(1)
         return 'test result', 0
     monkeypatch.setattr(server_health_checker, 'process_checks', fake_process_checks)
+    def fake_sleep(interval):
+        raise KeyboardInterrupt
+    monkeypatch.setattr(server_health_checker.time, 'sleep', fake_sleep)
     with pytest.raises(SystemExit) as exc_info:
         server_health_checker.main()
-    assert exc_info.value.code == 0
-    assert len(calls) == 2
+    assert exc_info.value.code == 130
+    assert len(calls) == 1
