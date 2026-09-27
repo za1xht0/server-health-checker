@@ -3,16 +3,17 @@ __pycache__/
 *.pyc
 .pytest_cache
 .coverage
+tests/__pycache__
 
 # Virtual environment
 .venv/
 venv/
 
 # Local configuration
-config.yaml
+/config/config.yaml
 
 # logs
-server_health_checker.log
+/logs/
 
 # IDE
 .idea/

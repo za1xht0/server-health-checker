@@ -4,7 +4,7 @@ After=network.target
 [Service]
 User=__SERVICE_USER__
 WorkingDirectory=__PROJECT_DIR__
-ExecStart=/usr/bin/python __PROJECT_DIR__/server_health_checker.py -c __PROJECT_DIR__/config.yaml
+ExecStart=/usr/bin/python __PROJECT_DIR__/server_health_checker.py -c __PROJECT_DIR__/config/config.yaml
 Restart=on-failure
 RestartSec=5
 [Install]

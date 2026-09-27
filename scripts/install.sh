@@ -4,23 +4,24 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SERVICE_USER="${SUDO_USER:-$USER}"
 SERVICE_FILE="/etc/systemd/system/server-health-checker.service"
     REQUIRED_FILES=(
-        server_health_checker.py
-        config.yaml
-        server-health-checker.service.example
+    "$PROJECT_DIR/server_health_checker.py"
+    "$PROJECT_DIR/config/config.yaml"
+    "$PROJECT_DIR/systemd/server-health-checker.service.example"
     )
     for file in "${REQUIRED_FILES[@]}"; do
-        if [ ! -f "$SCRIPT_DIR/$file" ]; then
+        if [ ! -f "$file" ]; then
             echo "ERROR: required file not found: $file"
             exit 1
         fi
             done
     sed \
     -e "s/__SERVICE_USER__/$SERVICE_USER/" \
-    -e "s|__PROJECT_DIR__|$SCRIPT_DIR|g" \
-    "$SCRIPT_DIR/server-health-checker.service.example" \
+    -e "s|__PROJECT_DIR__|$PROJECT_DIR|g" \
+    "$PROJECT_DIR/systemd/server-health-checker.service.example" \
     > "$SERVICE_FILE"
 
     systemctl daemon-reload
