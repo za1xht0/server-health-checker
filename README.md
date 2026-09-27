@@ -1,181 +1,105 @@
-
-
 ```
-                            
  ▄▄▄▄▄▄▄ ▄▄▄   ▄▄▄  ▄▄▄▄▄▄▄ 
 █████▀▀▀ ███   ███ ███▀▀▀▀▀ 
  ▀████▄  █████████ ███      
    ▀████ ███▀▀▀███ ███      
 ███████▀ ███   ███ ▀███████ 
-                            
-                                                                    
 ```
 
-CLI utility for monitoring basic system health metrics.
+# Server Health Checker
+ 
+CLI-утилита на Python для мониторинга состояния Linux-системы.
 
-The tool checks:
-- CPU usage
-- RAM usage
-- Disk usage
+Проект создан для практики Python и DevOps: мониторинг, YAML-конфигурация, логирование, тестирование, Bash и systemd.
 
-Based on configurable thresholds, it returns health status:
-- OK
-- WARNING
-- CRITICAL
+# Возможности
+* Мониторинг CPU, RAM и диска
+* Проверка состояния системных сервисов
+* Статусы OK, WARNING, CRITICAL
+* YAML-конфигурация и её валидация
+* Логирование
+* Коды завершения
+* Однократный и непрерывный режимы
+* Обработка Ctrl+C
+* Автоматические тесты с pytest
+* Запуск как systemd-сервис
+* Автоматический перезапуск через Restart=on-failure
+* Скрипты установки и удаления сервиса
 
-The project is built as a practical DevOps learning project and demonstrates:
-- Python CLI development
-- Configuration management
-- System monitoring
-- Linux-oriented automation practices
-
----
-## Purpose
-This project was created as a practical DevOps learning project to explore:
-- Linux system monitoring
-- CLI application development
-- YAML-based configuration
-
----
-
-## Features
-
-✅ Command-line interface  
-✅ YAML configuration  
-✅ Configuration validation  
-✅ CPU/RAM/Disk monitoring  
-✅ Custom warning and critical thresholds  
-✅ Exit codes for automation  
-✅ Single check mode (`--once`)  
-✅ Cross-platform disk path detection  
-
----
-
-## Requirements
-
-- Python 3.10+
-- pip
-
-Dependencies:
-- psutil
-- pyYAML
-
-## Install dependencies:
+# Установка
 
 ```bash
+git clone https://github.com/za1xht0/server-health-checker.git 
+cd server-health-checker 
 pip install -r requirements.txt
 ```
+## Требования:
+* Linux
+* Python 3.10+
+* pip
 
-## Installation
-```
-git clone https://github.com/za1xht0/server-health-checker.git
+# Конфигурация
 
-cd server-health-checker
-```
-Create virtual environment:
+Создать локальную конфигурацию из примера:
 
-```
-python3 -m venv .venv
-```
-Activate virtual environment:
-
-Linux/macOS:
-
-```
-source .venv/bin/activate
+```bash
+cp config/config.example.yaml config/config.yaml
 ```
 
-Windows:
+# Использование
 
-```
-.venv\Scripts\activate
-```
-
-## Configuration
-
-Copy example configuration:
-```
-cp config.example.yaml config.yaml
-```
-Example config.example.yaml:
-```
-resources:
-  warning: 80
-  critical: 90
-
-disk:
-  warning: 90
-  critical: 95
-```
-### Configuration rules:
-
-values must be numbers
-values must be between 0 and 100
-warning threshold must be lower than critical threshold
-
-## Usage
-
-Run continuous monitoring:
-```
-python server_health_checker.py --config config.yaml
-```
-Run a single health check:
-```
-python server_health_checker.py --config config.yaml --once
-```
-Short options:
-```
-python server_health_checker.py -c config.yaml -o
-```
-Show help:
-```
-python server_health_checker.py --help
-```
-## Command line arguments
-
-|Argument	    | Description                    |
-|-------------|-------------------------------:|
-|--config, -c	| Path to configuration file     |
-|--once, -o	  | Run one health check and exit  |
-
-## Example output
-```
-================================
-      Server Health Checker
-================================
-
-Running health check...
-
-
-CPU: 9.1% ---- OK
-Memory: 41.4% ---- OK
-Disk: 23.8% ---- OK
-
-Overall status: OK
-```
-## Exit codes
-
-The program uses exit codes for automation:
-
-| Code | Status   |	Description                   |
-|------|---------:|------------------------------:|   
-| 0    |	OK      | System is healthy             |
-| 1	   |WARNING	  | Warning threshold exceeded    |
-| 2    |	CRITICAL|	Critical threshold exceeded   |
-| 4    |	ERROR	  | Configuration file not found  |
-| 5    |	ERROR   |	Invalid configuration         |
-
-## Example:
-```
-echo $?
+Однократная проверка:
+```bash
+python server_health_checker.py --config config/config.yaml --once
 ```
 
-## Project structure
+Непрерывный мониторинг:
+```bash
+python server_health_checker.py --config config/config.yaml
 ```
-server-health-checker/
-│
-├── server_health_checker.py
-├── config.example.yaml
-├── requirements.txt
-└── README.md
+
+Короткая форма:
+```bash
+python server_health_checker.py -c config/config.yaml -o
+```
+
+Для остановки непрерывного режима используется Ctrl+C.
+
+# Коды завершения
+
+| Код   | Значение                             |
+| ----- | ------------------------------------ |
+| `0`   | OK                                   |
+| `1`   | WARNING                              |
+| `2`   | CRITICAL                             |
+| `4`   | Конфигурационный файл не найден      |
+| `5`   | Некорректная конфигурация            |
+| `130` | Программа остановлена через `Ctrl+C` |
+
+# systemd
+
+Установить сервис:
+```
+sudo ./scripts/install.sh
+```
+
+Проверить состояние:
+```
+systemctl status server-health-checker.service
+```
+
+Посмотреть логи:
+```
+journalctl -u server-health-checker.service
+```
+
+Удалить сервис:
+```
+sudo ./scripts/uninstall.sh
+```
+
+Сервис использует:
+```
+Restart=on-failure
+RestartSec=5
 ```
