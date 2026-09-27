@@ -16,4 +16,7 @@ server_health_checker.log
 
 # IDE
 .idea/
+
+# Local systemd files
 server-health-checker.service
+*.service.save

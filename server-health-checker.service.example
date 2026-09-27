@@ -2,9 +2,9 @@
 Description=server-health-checker
 After=network.target
 [Service]
-User=YOUR_USERNAME
-WorkingDirectory=/path/to/server-health-checker
-ExecStart=/usr/bin/python /path/to/server-health-checker/server_health_checker.py -c /path/to/server-health-checker/config.yaml
+User=__SERVICE_USER__
+WorkingDirectory=__PROJECT_DIR__
+ExecStart=/usr/bin/python __PROJECT_DIR__/server_health_checker.py -c __PROJECT_DIR__/config.yaml
 Restart=on-failure
 RestartSec=5
 [Install]
