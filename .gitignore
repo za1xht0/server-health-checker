@@ -16,4 +16,4 @@ server_health_checker.log
 
 # IDE
 .idea/
-.vscode/
+server-health-checker.service
