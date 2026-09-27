@@ -222,3 +222,27 @@ def test_main(monkeypatch):
     with pytest.raises(SystemExit) as exc_info:
         server_health_checker.main()
     assert exc_info.value.code == 0
+
+def test_main_invalid_config(monkeypatch):
+    monkeypatch.setattr(server_health_checker, 'parse_args', lambda: (Path('config.yaml'), True))
+    monkeypatch.setattr(server_health_checker, 'load_config', lambda cfg_path: {})
+    monkeypatch.setattr(server_health_checker, 'validate_config', lambda config: False)
+    with pytest.raises(SystemExit) as exc_info:
+        server_health_checker.main()
+    assert exc_info.value.code == 5
+
+def test_main_user_stops(monkeypatch):
+    monkeypatch.setattr(server_health_checker, 'parse_args',lambda: (Path('config.yaml'), False))
+    monkeypatch.setattr('builtins.input', lambda _: 'n')
+    monkeypatch.setattr(server_health_checker, 'load_config',
+        lambda cfg_path: {
+            'resources': {'warning': 80, 'critical': 90},
+            'disk': {'warning': 90, 'critical': 95}
+        })
+    monkeypatch.setattr(server_health_checker, 'validate_config', lambda config: True)
+    monkeypatch.setattr(server_health_checker, 'get_disk_path', lambda: '/home')
+    monkeypatch.setattr(server_health_checker, 'get_system_metrics', lambda disk_path: (25.5, 63.2, 47.8))
+    monkeypatch.setattr(server_health_checker, 'process_checks', lambda cpu, ram, disk, thresholds: ('test result', 0))
+    with pytest.raises(SystemExit) as exc_info:
+        server_health_checker.main()
+    assert exc_info.value.code == 0
