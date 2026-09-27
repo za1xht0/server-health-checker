@@ -24,7 +24,9 @@ log_result,)
     [
         (50, 80, 90, 'OK'), 
         (85, 80, 90, 'WARNING'), 
-        (95, 80, 90, 'CRITICAL')],
+        (95, 80, 90, 'CRITICAL'),
+        (80, 80, 90, 'WARNING'),
+        (90, 80, 90, 'WARNING'),],
 )
 
 def test_cpu_check(cpu, warning, critical, expected):
@@ -36,7 +38,9 @@ def test_cpu_check(cpu, warning, critical, expected):
     [
         (50, 80, 90, 'OK'), 
         (85, 80, 90, 'WARNING'), 
-        (95, 80, 90, 'CRITICAL')],
+        (95, 80, 90, 'CRITICAL'),
+        (80, 80, 90, 'WARNING'),
+        (90, 80, 90, 'WARNING'),],
 )
 
 def test_ram_check(ram, warning, critical, expected):
@@ -48,7 +52,9 @@ def test_ram_check(ram, warning, critical, expected):
     [
         (70, 80, 90, 'OK'), 
         (85, 80, 90, 'WARNING'), 
-        (95, 80, 90, 'CRITICAL')],
+        (95, 80, 90, 'CRITICAL'),
+        (90, 90, 95, 'WARNING'),
+        (95, 90, 95, 'WARNING'),],
 )
 
 def test_disk_check(disk, warning, critical, expected):
