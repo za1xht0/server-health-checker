@@ -4,6 +4,7 @@ import psutil
 import sys
 import logging
 import server_health_checker
+from unittest.mock import Mock
 from pathlib import Path
 from types import SimpleNamespace
 from server_health_checker import (cpu_check, 
@@ -106,7 +107,9 @@ def test_get_exit_code(status, expected):
         ({"resources": {"warning": 0, "critical": 90}, "disk": {"warning": 90, "critical": 95}}, False),
         ({"resources": {"warning": 101, "critical": 95}, "disk": {"warning": 90, "critical": 95}}, False),
         ({"resources": {"warning": 95, "critical": 80}, "disk": {"warning": 90, "critical": 95}}, False),
-        ({"resources": {"warning": 80, "critical": 95}, "disk": {"warning": 90, "critical": 95}}, True)
+        ({"resources": {"warning": 80, "critical": 95}, "disk": {"warning": 90, "critical": 95}}, True),
+        ({}, False),
+        ({"resources": {"warning": 80, "critical": 90}, "disk": {"critical": 95}}, False)
     ]
 )
 
@@ -194,18 +197,21 @@ def test_get_disk_path_another_os(monkeypatch):
 
 
 def test_get_system_metrics(monkeypatch):
-    monkeypatch.setattr(psutil, 'cpu_percent', lambda interval: 25.5)
+    cpu_percent = Mock(return_value=25.5)
+    monkeypatch.setattr(psutil, 'cpu_percent', cpu_percent)
     virtual_memory = SimpleNamespace(percent=63.2)
     disk_usage = SimpleNamespace(percent=47.8)
     monkeypatch.setattr(psutil, 'virtual_memory', lambda: virtual_memory)
     monkeypatch.setattr(psutil, 'disk_usage', lambda path: disk_usage)
     assert get_system_metrics('/home') == (25.5, 63.2, 47.8)
+    cpu_percent.assert_called_once_with(interval=1)
 
 @pytest.mark.parametrize(
         'result, log_func, mess, percent',
         [('CRITICAL', 'error', 'CPU usage: 95% - CRITICAL', 95),
          ('WARNING', 'warning', 'CPU usage: 85% - WARNING', 85),
-         ('OK', 'info', 'CPU usage: 50% - OK', 50)] 
+         ('OK', 'info', 'CPU usage: 50% - OK', 50),
+         ('UNKNOWN', 'info', 'CPU usage: 50% - UNKNOWN', 50)] 
 )
 def test_log_result(monkeypatch, result, log_func, mess, percent):
     messages = []
@@ -239,7 +245,8 @@ def test_main_invalid_config(monkeypatch):
 
 def test_main_user_stops(monkeypatch):
     monkeypatch.setattr(server_health_checker, 'parse_args',lambda: (Path('config.yaml'), False))
-    monkeypatch.setattr('builtins.input', lambda _: 'n')
+    answers = iter(['y', 'n'])
+    monkeypatch.setattr('builtins.input', lambda _: next(answers))
     monkeypatch.setattr(server_health_checker, 'load_config',
         lambda cfg_path: {
             'resources': {'warning': 80, 'critical': 90},
@@ -248,7 +255,12 @@ def test_main_user_stops(monkeypatch):
     monkeypatch.setattr(server_health_checker, 'validate_config', lambda config: True)
     monkeypatch.setattr(server_health_checker, 'get_disk_path', lambda: '/home')
     monkeypatch.setattr(server_health_checker, 'get_system_metrics', lambda disk_path: (25.5, 63.2, 47.8))
-    monkeypatch.setattr(server_health_checker, 'process_checks', lambda cpu, ram, disk, thresholds: ('test result', 0))
+    calls = []
+    def fake_process_checks(cpu, ram, disk, thresholds):
+        calls.append(1)
+        return 'test result', 0
+    monkeypatch.setattr(server_health_checker, 'process_checks', fake_process_checks)
     with pytest.raises(SystemExit) as exc_info:
         server_health_checker.main()
     assert exc_info.value.code == 0
+    assert len(calls) == 2
